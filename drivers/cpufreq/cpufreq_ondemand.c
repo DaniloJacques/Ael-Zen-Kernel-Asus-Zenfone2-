@@ -221,6 +221,7 @@ static void od_check_cpu(int cpu, unsigned int load_freq)
 			dbs_info->rate_mult =
 				od_tuners->sampling_down_factor;
 		dbs_freq_increase(policy, policy->max);
+<<<<<<< HEAD
 		return;
 	}
 
@@ -236,6 +237,14 @@ static void od_check_cpu(int cpu, unsigned int load_freq)
 	 */
 	if (load_freq < od_tuners->adj_up_threshold
 			* policy->cur) {
+=======
+<<<<<<< HEAD
+=======
+		return;
+>>>>>>> 1f552a8... cpufreq: ondemand: Change the calculation of target frequency
+	} else {
+		/* Calculate the next frequency proportional to load */
+>>>>>>> 4dbf98d... cpufreq: ondemand: Change the calculation of target frequency
 		unsigned int freq_next;
 		freq_next = load_freq / od_tuners->adj_up_threshold;
 
