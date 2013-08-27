@@ -165,25 +165,26 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 EXPORT_SYMBOL_GPL(dbs_check_cpu);
 
 static inline void __gov_queue_work(int cpu, struct dbs_data *dbs_data,
-		unsigned int delay)
+					unsigned int delay)
 {
 	struct cpu_dbs_common_info *cdbs = dbs_data->cdata->get_cpu_cdbs(cpu);
-
 	mod_delayed_work_on(cpu, system_wq, &cdbs->work, delay);
 }
 
 void gov_queue_work(struct dbs_data *dbs_data, struct cpufreq_policy *policy,
-		unsigned int delay, bool all_cpus)
+			unsigned int delay, bool all_cpus)
 {
 	int i;
-
+	if (!policy->governor_enabled)
+		return;
 	if (!all_cpus) {
 		__gov_queue_work(smp_processor_id(), dbs_data, delay);
 	} else {
-		for_each_cpu(i, policy->cpus)
-			__gov_queue_work(i, dbs_data, delay);
+	for_each_cpu(i, policy->cpus)
+		__gov_queue_work(i, dbs_data, delay);
 	}
 }
+
 EXPORT_SYMBOL_GPL(gov_queue_work);
 
 static inline void gov_cancel_work(struct dbs_data *dbs_data,
