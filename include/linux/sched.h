@@ -1437,6 +1437,10 @@ struct vm_area_struct *vmacache[VMACACHE_SIZE];
 	unsigned int memcg_kmem_skip_account;
 	struct memcg_oom_info {
 		unsigned int may_oom:1;
+		unsigned int in_memcg_oom:1;
+		unsigned int oom_locked:1;
+		int wakeups;
+		struct mem_cgroup *wait_on_memcg;
 	} memcg_oom;
 #endif
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
