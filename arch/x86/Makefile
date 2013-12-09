@@ -31,17 +31,9 @@ ifeq ($(CONFIG_X86_32),y)
 
         KBUILD_CFLAGS += -msoft-float -mregparm=3 -freg-struct-return
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
         # Don't autogenerate MMX or SSE instructions
         KBUILD_CFLAGS += -mno-mmx -mno-sse
-=======
-        # Don't autogenerate SSE instructions
-	KBUILD_CFLAGS += -mno-sse
->>>>>>> d92fb83... x86-64, build: Always pass in -mno-sse
 
->>>>>>> a0755b1... x86-64, build: Always pass in -mno-sse
         # Never want PIC in a 32-bit kernel, prevent breakage with GCC built
         # with nonstandard options
         KBUILD_CFLAGS += -fno-pic
@@ -68,30 +60,47 @@ else
         KBUILD_AFLAGS += -m64
         KBUILD_CFLAGS += -m64 -fno-pic
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-        # Don't autogenerate MMX or SSE instructions
-        KBUILD_CFLAGS += -mno-mmx -mno-sse
-=======
-        # Don't autogenerate SSE instructions
-	KBUILD_CFLAGS += -mno-sse
->>>>>>> d92fb83... x86-64, build: Always pass in -mno-sse
-
->>>>>>> a0755b1... x86-64, build: Always pass in -mno-sse
 	# Use -mpreferred-stack-boundary=3 if supported.
 	KBUILD_CFLAGS += $(call cc-option,-mno-sse -mpreferred-stack-boundary=3)
 
         # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
+	cflags-$(CONFIG_MNATIVE) += $(call cc-option,-march=native)
         cflags-$(CONFIG_MK8) += $(call cc-option,-march=k8)
+	cflags-$(CONFIG_MK8SSE3) += $(call cc-option,-march=k8-sse3,-mtune=k8)
+        cflags-$(CONFIG_MK10) += $(call cc-option,-march=amdfam10)
+        cflags-$(CONFIG_MBARCELONA) += $(call cc-option,-march=barcelona)
+        cflags-$(CONFIG_MBOBCAT) += $(call cc-option,-march=btver1)
+        cflags-$(CONFIG_MBULLDOZER) += $(call cc-option,-march=bdver1)
+        cflags-$(CONFIG_MPILEDRIVER) += $(call cc-option,-march=bdver2)
+        cflags-$(CONFIG_MSTEAMROLLER) += $(call cc-option,-march=bdver3)
+        cflags-$(CONFIG_MJAGUAR) += $(call cc-option,-march=btver2)
         cflags-$(CONFIG_MPSC) += $(call cc-option,-march=nocona)
 
         cflags-$(CONFIG_MCORE2) += \
-                $(call cc-option,-march=core2,$(call cc-option,-mtune=generic))
-	cflags-$(CONFIG_MATOM) += $(call cc-option,-march=atom) \
-		$(call cc-option,-mtune=atom,$(call cc-option,-mtune=generic))
-        cflags-$(CONFIG_MSLM) += $(call cc-option,-march=slm) \
-                $(call cc-option,-mtune=slm,$(call cc-option,-mtune=generic))
+                $(call cc-option,-march=core2,$(call cc-option,-mtune=core2))
+        cflags-$(CONFIG_MNEHALEM) += \
+                $(call cc-option,-march=nehalem,$(call cc-option,-mtune=nehalem))
+        cflags-$(CONFIG_MWESTMERE) += \
+                $(call cc-option,-march=westmere,$(call cc-option,-mtune=westmere))
+        cflags-$(CONFIG_MSILVERMONT) += \
+                $(call cc-option,-march=silvermont,$(call cc-option,-mtune=silvermont))
+        cflags-$(CONFIG_MSANDYBRIDGE) += \
+                $(call cc-option,-march=sandybridge,$(call cc-option,-mtune=sandybridge))
+        cflags-$(CONFIG_MIVYBRIDGE) += \
+                $(call cc-option,-march=ivybridge,$(call cc-option,-mtune=ivybridge))
+        cflags-$(CONFIG_MHASWELL) += \
+                $(call cc-option,-march=haswell,$(call cc-option,-mtune=haswell))
+        cflags-$(CONFIG_MBROADWELL) += \
+                $(call cc-option,-march=broadwell,$(call cc-option,-mtune=broadwell))
+        cflags-$(CONFIG_MSKYLAKE) += \
+                $(call cc-option,-march=skylake,$(call cc-option,-mtune=skylake))
+        cflags-$(CONFIG_MATOM) += $(call cc-option,-march=bonnell) \
+                $(call cc-option,-mtune=bonnell,$(call cc-option,-mtune=generic))
+        cflags-$(CONFIG_MSLM) += $(call cc-option,-march=silvermont) \
+                $(call cc-option,-mtune=silvermont,$(call cc-option,-mtune=silvermont)) \
+		--param l1-cache-line-size=64 \
+		--param l1-cache-size=32 \
+		--param l2-cache-size=1024 
         cflags-$(CONFIG_GENERIC_CPU) += $(call cc-option,-mtune=generic)
         KBUILD_CFLAGS += $(cflags-y)
 
