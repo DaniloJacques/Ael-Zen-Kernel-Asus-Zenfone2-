@@ -365,10 +365,14 @@ static struct dentry *d_kill(struct dentry *dentry, struct dentry *parent)
 	__releases(dentry->d_inode->i_lock)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	__list_del_entry(&dentry->d_child);
 =======
 	list_del(&dentry->d_child);
 >>>>>>> 28666b9... move d_rcu from overlapping d_child to overlapping d_alias
+=======
+	__list_del_entry(&dentry->d_child);
+>>>>>>> 3e5b472... deal with deadlock in d_walk()
 	/*
 	 * Inform ascending readers that we are no longer attached to the
 	 * dentry tree
@@ -1071,7 +1075,17 @@ ascend:
 		rcu_read_unlock();
 =======
 		next = child->d_child.next;
+<<<<<<< HEAD
 >>>>>>> 28666b9... move d_rcu from overlapping d_child to overlapping d_alias
+=======
+		while (unlikely(child->d_flags & DCACHE_DENTRY_KILLED)) {
+			if (next == &this_parent->d_subdirs)
+				goto ascend;
+			child = list_entry(next, struct dentry, d_child);
+			next = next->next;
+		}
+		rcu_read_unlock();
+>>>>>>> 3e5b472... deal with deadlock in d_walk()
 		goto resume;
 	}
 	if (!locked && read_seqretry(&rename_lock, seq))
@@ -1201,7 +1215,17 @@ ascend:
 		rcu_read_unlock();
 =======
 		next = child->d_child.next;
+<<<<<<< HEAD
 >>>>>>> 28666b9... move d_rcu from overlapping d_child to overlapping d_alias
+=======
+		while (unlikely(child->d_flags & DCACHE_DENTRY_KILLED)) {
+			if (next == &this_parent->d_subdirs)
+				goto ascend;
+			child = list_entry(next, struct dentry, d_child);
+			next = next->next;
+		}
+		rcu_read_unlock();
+>>>>>>> 3e5b472... deal with deadlock in d_walk()
 		goto resume;
 	}
 out:
@@ -3004,7 +3028,17 @@ ascend:
 		rcu_read_unlock();
 =======
 		next = child->d_child.next;
+<<<<<<< HEAD
 >>>>>>> 28666b9... move d_rcu from overlapping d_child to overlapping d_alias
+=======
+		while (unlikely(child->d_flags & DCACHE_DENTRY_KILLED)) {
+			if (next == &this_parent->d_subdirs)
+				goto ascend;
+			child = list_entry(next, struct dentry, d_child);
+			next = next->next;
+		}
+		rcu_read_unlock();
+>>>>>>> 3e5b472... deal with deadlock in d_walk()
 		goto resume;
 	}
 	if (!locked && read_seqretry(&rename_lock, seq))
