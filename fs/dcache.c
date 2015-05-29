@@ -1205,6 +1205,7 @@ ascend:
 		if (!locked && read_seqretry(&rename_lock, seq))
 			goto rename_retry;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		/* go into the first sibling still alive */
 		do {
 			next = child->d_child.next;
@@ -1219,11 +1220,15 @@ ascend:
 >>>>>>> 28666b9... move d_rcu from overlapping d_child to overlapping d_alias
 =======
 		while (unlikely(child->d_flags & DCACHE_DENTRY_KILLED)) {
+=======
+		/* go into the first sibling still alive */
+		do {
+			next = child->d_child.next;
+>>>>>>> 114e447... d_walk() might skip too much
 			if (next == &this_parent->d_subdirs)
 				goto ascend;
 			child = list_entry(next, struct dentry, d_child);
-			next = next->next;
-		}
+		} while (unlikely(child->d_flags & DCACHE_DENTRY_KILLED));
 		rcu_read_unlock();
 >>>>>>> 3e5b472... deal with deadlock in d_walk()
 		goto resume;
