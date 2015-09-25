@@ -187,6 +187,10 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 		kdebug("- %u", key->serial);
 		key_check(key);
 
+		/* Throw away the key data */
+		if (key->type->destroy)
+			key->type->destroy(key);
+
 		security_key_free(key);
 
 		/* deal with the user's key tracking and quota */
@@ -202,7 +206,10 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 			atomic_dec(&key->user->nikeys);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 43e2060... KEYS: Fix race between key destruction and finding a keyring by name
 <<<<<<< HEAD
                 /* Throw away the key data if the key is instantiated */
                 if (test_bit(KEY_FLAG_INSTANTIATED, &key->flags) &&
@@ -218,6 +225,8 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 			key->type->destroy(key);
 >>>>>>> 5565e69... KEYS: close race between key lookup and freeing
 
+=======
+>>>>>>> ccc152b... KEYS: Fix race between key destruction and finding a keyring by name
 		key_user_put(key->user);
 
 		/* now throw away the key memory */
