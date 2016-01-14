@@ -43,6 +43,7 @@ else
    make $DEFCONFIG
    sleep 1
 fi
+
 wmctrl -r :ACTIVE: -N "Compiling FareX Kernel"
 make $EV -j$CPUS
 
