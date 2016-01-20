@@ -1559,7 +1559,9 @@ int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	if (temp == 0xffffffff || (xhci->xhc_state & XHCI_STATE_HALTED)) {
 		xhci_dbg(xhci, "HW died, freeing TD.\n");
 		urb_priv = urb->hcpriv;
-		for (i = urb_priv->td_cnt; i < urb_priv->length; i++) {
+		for (i = urb_priv->td_cnt;
+		     i < urb_priv->length && xhci->devs[urb->dev->slot_id];
+		     i++) {
 			td = urb_priv->td[i];
 			if (!list_empty(&td->td_list))
 				list_del_init(&td->td_list);
@@ -4989,17 +4991,15 @@ static int __init xhci_hcd_init(void)
 {
 	int retval;
 
-<<<<<<< HEAD
+	if (usb_disabled())
+		return -ENODEV;
+
 	retval = xhci_register_ush_pci();
 	if (retval < 0) {
 		printk(KERN_DEBUG "Problem registering USH PCI driver.");
 		return retval;
 	}
-=======
-	if (usb_disabled())
-		return -ENODEV;
 
->>>>>>> 12c1515... xhci: fix placement of call to usb_disabled()
 	retval = xhci_register_pci();
 	if (retval < 0) {
 		printk(KERN_DEBUG "Problem registering PCI driver.");
