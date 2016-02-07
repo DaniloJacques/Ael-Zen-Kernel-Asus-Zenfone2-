@@ -22,6 +22,8 @@ echo "Setting bzImage Location For FlareX kernel"
 export BZIMAGE=arch/x86/boot/bzImage
 echo "Enabling Graphite Optimizations"
 export ENABLE_GRAPHITE=true
+echo "Set KBUILD_BUILD_VERSION to zero at all times"
+export KBUILD_BUILD_VERSION="0"
 echo "Enviroment Setup Complete Now Moving To Compiling"
 
 #Build
