@@ -221,48 +221,27 @@ static void od_check_cpu(int cpu, unsigned int load_freq)
 			dbs_info->rate_mult =
 				od_tuners->sampling_down_factor;
 		dbs_freq_increase(policy, policy->max);
-<<<<<<< HEAD
-		return;
-	}
-
-	/* Check for frequency decrease */
-	/* if we cannot reduce the frequency anymore, break out early */
-	if (policy->cur == policy->min)
-		return;
-
-	/*
-	 * The optimal frequency is the frequency that is the lowest that can
-	 * support the current CPU usage without triggering the up policy. To be
-	 * safe, we focus 10 points under the threshold.
-	 */
-	if (load_freq < od_tuners->adj_up_threshold
-			* policy->cur) {
-=======
-<<<<<<< HEAD
-=======
-		return;
->>>>>>> 1f552a8... cpufreq: ondemand: Change the calculation of target frequency
-	} else {
+		
+		} else {
 		/* Calculate the next frequency proportional to load */
->>>>>>> 4dbf98d... cpufreq: ondemand: Change the calculation of target frequency
-		unsigned int freq_next;
-		freq_next = load_freq / od_tuners->adj_up_threshold;
+		unsigned int freq_next, min_f, max_f;
+
+		min_f = policy->cpuinfo.min_freq;
+		max_f = policy->cpuinfo.max_freq;
+		freq_next = min_f + load * (max_f - min_f) / 100;
 
 		/* No longer fully busy, reset rate_mult */
 		dbs_info->rate_mult = 1;
 
-		if (freq_next < policy->min)
-			freq_next = policy->min;
-
-		if (!od_tuners->powersave_bias) {
+		if (!get_powersave_bias(od_tuners, freq_next)) {
 			__cpufreq_driver_target(policy, freq_next,
-					CPUFREQ_RELATION_L);
+					CPUFREQ_RELATION_C);
 			return;
 		}
 
 		freq_next = od_ops.powersave_bias_target(policy, freq_next,
 					CPUFREQ_RELATION_L);
-		__cpufreq_driver_target(policy, freq_next, CPUFREQ_RELATION_L);
+		__cpufreq_driver_target(policy, freq_next, CPUFREQ_RELATION_C);
 	}
 }
 
