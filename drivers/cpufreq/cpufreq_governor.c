@@ -29,14 +29,6 @@
 
 #include "cpufreq_governor.h"
 
-static struct kobject *get_governor_parent_kobj(struct cpufreq_policy *policy)
-{
-	if (have_governor_per_policy())
-		return &policy->kobj;
-	else
-		return cpufreq_global_kobject;
-}
-
 static struct attribute_group *get_sysfs_attr(struct dbs_data *dbs_data)
 {
 	if (have_governor_per_policy())
@@ -95,18 +87,9 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 	else
 		ignore_nice = cs_tuners->ignore_nice_load;
 
-<<<<<<< HEAD
 	policy = cdbs->cur_policy;
 
-	/* Get Absolute Load (in terms of freq for ondemand gov) */
-=======
-<<<<<<< HEAD
-=======
-	policy = cdbs->cur_policy;
-
->>>>>>> 1f552a8... cpufreq: ondemand: Change the calculation of target frequency
 	/* Get Absolute Load */
->>>>>>> 4dbf98d... cpufreq: ondemand: Change the calculation of target frequency
 	for_each_cpu(j, policy->cpus) {
 		struct cpu_dbs_common_info *j_cdbs;
 		u64 cur_wall_time, cur_idle_time;
@@ -155,51 +138,7 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 		if (unlikely(!wall_time || wall_time < idle_time))
 			continue;
 
-<<<<<<< HEAD
 		load = 100 * (wall_time - idle_time) / wall_time;
-=======
-<<<<<<< HEAD
-		/*
-		 * If the CPU had gone completely idle, and a task just woke up
-		 * on this CPU now, it would be unfair to calculate 'load' the
-		 * usual way for this elapsed time-window, because it will show
-		 * near-zero load, irrespective of how CPU intensive that task
-		 * actually is. This is undesirable for latency-sensitive bursty
-		 * workloads.
-		 *
-		 * To avoid this, we reuse the 'load' from the previous
-		 * time-window and give this task a chance to start with a
-		 * reasonably high CPU frequency. (However, we shouldn't over-do
-		 * this copy, lest we get stuck at a high load (high frequency)
-		 * for too long, even when the current system load has actually
-		 * dropped down. So we perform the copy only once, upon the
-		 * first wake-up from idle.)
-		 *
-		 * Detecting this situation is easy: the governor's deferrable
-		 * timer would not have fired during CPU-idle periods. Hence
-		 * an unusually large 'wall_time' (as compared to the sampling
-		 * rate) indicates this scenario.
-		 *
-		 * prev_load can be zero in two cases and we must recalculate it
-		 * for both cases:
-		 * - during long idle intervals
-		 * - explicitly set to zero
-		 */
-		if (unlikely(wall_time > (2 * sampling_rate) &&
-			     j_cdbs->prev_load)) {
-			load = j_cdbs->prev_load;
->>>>>>> 4dbf98d... cpufreq: ondemand: Change the calculation of target frequency
-
-		if (dbs_data->cdata->governor == GOV_ONDEMAND) {
-			int freq_avg = __cpufreq_driver_getavg(policy, j);
-			if (freq_avg <= 0)
-				freq_avg = policy->cur;
-
-			load *= freq_avg;
-		}
-=======
-		load = 100 * (wall_time - idle_time) / wall_time;
->>>>>>> 1f552a8... cpufreq: ondemand: Change the calculation of target frequency
 
 		if (load > max_load)
 			max_load = load;
@@ -210,26 +149,28 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 EXPORT_SYMBOL_GPL(dbs_check_cpu);
 
 static inline void __gov_queue_work(int cpu, struct dbs_data *dbs_data,
-					unsigned int delay)
+		unsigned int delay)
 {
 	struct cpu_dbs_common_info *cdbs = dbs_data->cdata->get_cpu_cdbs(cpu);
+
 	mod_delayed_work_on(cpu, system_wq, &cdbs->work, delay);
 }
 
 void gov_queue_work(struct dbs_data *dbs_data, struct cpufreq_policy *policy,
-			unsigned int delay, bool all_cpus)
+		unsigned int delay, bool all_cpus)
 {
 	int i;
+
 	if (!policy->governor_enabled)
 		return;
+
 	if (!all_cpus) {
 		__gov_queue_work(smp_processor_id(), dbs_data, delay);
 	} else {
-	for_each_cpu(i, policy->cpus)
-		__gov_queue_work(i, dbs_data, delay);
+		for_each_cpu(i, policy->cpus)
+			__gov_queue_work(i, dbs_data, delay);
 	}
 }
-
 EXPORT_SYMBOL_GPL(gov_queue_work);
 
 static inline void gov_cancel_work(struct dbs_data *dbs_data,
@@ -447,6 +388,7 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 		mutex_lock(&dbs_data->mutex);
 		mutex_destroy(&cpu_cdbs->timer_mutex);
+		cpu_cdbs->cur_policy = NULL;
 
 		mutex_unlock(&dbs_data->mutex);
 
