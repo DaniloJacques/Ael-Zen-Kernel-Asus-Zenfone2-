@@ -318,13 +318,13 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
 		sprintf(name, "dmesg-%s-%lld", psname, id);
 		break;
 	case PSTORE_TYPE_CONSOLE:
-		scnprintf(name, sizeof(name), "console-%s", psname);
+		sprintf(name, "console-%s", psname);
 		break;
 	case PSTORE_TYPE_FTRACE:
-		scnprintf(name, sizeof(name), "ftrace-%s", psname);
+		sprintf(name, "ftrace-%s", psname);
 		break;
 	case PSTORE_TYPE_MCE:
-		scnprintf(name, sizeof(name), "mce-%s-%lld", psname, id);
+		sprintf(name, "mce-%s-%lld", psname, id);
 		break;
 	case PSTORE_TYPE_UNKNOWN:
 		sprintf(name, "unknown-%s-%lld", psname, id);

@@ -1,6 +1,6 @@
 /*
  * Sweep2Wake driver for Zenfone 2
- * Touchboost support included here
+ * 
  * 
  * Author: andip71 & TheSSJ, 10.12.2014
  * 
@@ -40,7 +40,7 @@
 /*****************************************/
 
 #define DRIVER_AUTHOR "andip71 (Lord Boeffla), TheSSJ"
-#define DRIVER_DESCRIPTION "Sweep2sleep + Touchboost for Zenfone 2"
+#define DRIVER_DESCRIPTION "Sweep2sleep for Zenfone 2"
 #define DRIVER_VERSION "1.0.2"
 #define LOGTAG "s2s: "
 
@@ -58,7 +58,6 @@ MODULE_LICENSE("GPLv2");
 /*****************************************/
 
 int s2s = 1;
-int touchboost = 1;
 int is_ze550ml = 0;
 int y_boundary = 1920; //y value for ZE551ML
 int x_boundary = 1080; //x value for ZE551ML
@@ -82,8 +81,6 @@ static DEFINE_MUTEX(pwrkeyworklock);
 static struct workqueue_struct *s2s_input_wq;
 static struct work_struct s2s_input_work;
 
-//touchboost code here
-whichgov ta_active = NONE;
 
 //determination which device is running this kernel
 extern int Read_PROJ_ID(void);
@@ -215,23 +212,8 @@ static void s2s_input_callback(struct work_struct *unused)
 static void s2s_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value)
 {
-	if (!s2s && !touchboost)
+	if (!s2s)
 		return;
-	
-	if (code == ABS_MT_TRACKING_ID && value == -1) 
-	{
-		//Touch up is done here, unboost if still boosted
-		if(touchboost)
-		{
-			if(ta_active==THESSJACTIVE)
-				set_cpufreq_boost_ta(0);
-			if(ta_active==YANKACTIVE)
-				set_cpufreq_boost_ya(0);
-		}
-		//as the finger left the contact with the screen, it doesn't count as sweep anymore, therefore reset
-		sweep2sleep_reset();
-		return;
-	}
 	
 	if (code == ABS_MT_POSITION_X)
 	{
@@ -250,14 +232,6 @@ static void s2s_input_event(struct input_handle *handle, unsigned int type,
 		touch_x_called = false;
 		touch_y_called = false;
 		
-		//we have x and y coordinates, we can start the touchboost now
-		if(touchboost)
-		{
-			if(ta_active==THESSJACTIVE)
-				set_cpufreq_boost_ta(1);
-			if(ta_active==YANKACTIVE)
-				set_cpufreq_boost_ya(1);
-		}
 		
 		//if sweep2sleep isn't activated, we don't need to evaluate anything. Reset and break out
 		if(!s2s)
@@ -379,13 +353,11 @@ static struct input_handler s2s_input_handler =
 static void early_suspend_screen_off(struct early_suspend *h)
 {
 	scr_suspended = true;
-	touchboost = 0;
 }
 
 static void late_resume_screen_on(struct early_suspend *h)
 {
 	scr_suspended = false;
-	touchboost = 1;
 }
 
 static struct early_suspend screen_detect = {
@@ -468,33 +440,6 @@ static ssize_t version_show(struct device *dev,
 static DEVICE_ATTR(sweep2sleep_version, (S_IWUSR|S_IRUGO),
 	version_show, NULL);
 
-static ssize_t touchboost_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	return sprintf(buf, "%d\n", touchboost);
-}
-
-static ssize_t touchboost_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	unsigned int ret = -EINVAL;
-	int val;
-
-	// read values from input buffer
-	ret = sscanf(buf, "%d", &val);
-
-	if (ret != 1)
-		return -EINVAL;
-		
-	// store if valid data
-	if (((val == 0) || (val == 1)))
-		touchboost = val;
-
-	return count;
-}
-
-static DEVICE_ATTR(touchboost, (S_IWUSR|S_IRUGO),
-	touchboost_show, touchboost_store);
 
 /*****************************************/
 // Driver init and exit functions
@@ -579,12 +524,6 @@ static int __init sweep2sleep_init(void)
 		goto err4;
 	}*/
 	
-	rc = sysfs_create_file(android_touch_kobj, &dev_attr_touchboost.attr);
-	if (rc) 
-	{
-		pr_warn(LOGTAG"%s: sysfs_create_file failed for touchboost\n", __func__);
-		goto err5;
-	}
 	
 	if (Read_HW_ID() == HW_ID_MP)
 	{
@@ -598,8 +537,7 @@ static int __init sweep2sleep_init(void)
 	}
 	
 	return 0;
-err5:
-	ta_active = NONE;
+
 err4:
 	unregister_early_suspend(&screen_detect);
 	input_unregister_handler(&s2s_input_handler);
